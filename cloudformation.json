@@ -177,6 +177,13 @@
                 "Code": {
                     "S3Bucket": "<FUNC_BUCKET_NAME>",
                     "S3Key": "<GETFILE_FILE_NAME>"
+                },
+                "Environment": {
+                    "Variables": {
+                        "apiKey": "<AT_API_KEY>",
+                        "baseID": "appiGabrJNHWkBExv",
+                        "tableName": "FILES"
+                    }
                 }
             }
         }
@@ -196,7 +203,48 @@
                 "Code": {
                     "S3Bucket": "<FUNC_BUCKET_NAME>",
                     "S3Key": "<FILEFEEDBACK_FILE_NAME>"
+                },
+                "Environment": {
+                    "Variables": {
+                        "apiKey": "<AT_API_KEY>",
+                        "baseID": "appiGabrJNHWkBExv",
+                        "tableName": "FILES"
+                    }
                 }
+            }
+        }
+        "LambdaExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": "lambda.amazonaws.com"
+                      },
+                      "Action": "sts:AssumeRole"
+                    }
+                  ]
+                },
+                "Policies": [{
+                    "PolicyName": "root",
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:PutLogEvents"
+                          ],
+                          "Resource": "arn:aws:logs:*:*:*"
+                        }
+                      ]
+                    }
+                }]
             }
         }
     },

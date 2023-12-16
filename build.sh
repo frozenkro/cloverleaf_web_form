@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ -z "$AT_API_KEY" ]; then 
+    echo "Error: environment variable AT_API_KEY is not set"
+    exit 1
+fi
+
 LAYER_BUCKET_NAME="cloverleaf-lambda-layers"
 LAYER_FILE_NAME="pyairtable-lambda-layer.zip"
 FUNC_BUCKET_NAME="cloverleaf-lambda-funcs"
@@ -39,4 +44,4 @@ sed -i "s/<LAMBDA_LAYER_FILE>/$LAYER_FILE_NAME/g" "./cloudformation-deploy.json"
 sed -i "s/<FUNC_BUCKET_NAME>/$FUNC_BUCKET_NAME/g" "./cloudformation-deploy.json"
 sed -i "s/<GETFILE_FILE_NAME>/$GETFILE_FILE_NAME/g" "./cloudformation-deploy.json"
 sed -i "s/<FILEFEEDBACK_FILE_NAME>/$FILEFEEDBACK_FILE_NAME/g" "./cloudformation-deploy.json"
-
+sed -i "s/<AT_API_KEY>/$AT_API_KEY/g" "./cloudformation-deploy.json"
