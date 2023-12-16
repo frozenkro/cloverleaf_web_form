@@ -1,0 +1,212 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "API endpoints and lambda functions for cloverleaf web form's airtable integration",
+    "Resources": {
+        "ClwfApi": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+                "Name": "ClwfApi",
+                "Description": "Exposes methods to interact with cloverleaf airtable"
+            }
+        },
+        "FileResource": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+                "ParentId": {
+                    "Fn::GetAtt": [
+                        "ClwfApi",
+                        "RootResourceId"
+                    ]
+                },
+                "PathPart": "file",
+                "RestApiId": {
+                    "Ref": "ClwfApi"
+                }
+            }
+        },
+        "FileFeedbackResource": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+                "ParentId": {
+                    "Fn::GetAtt": [
+                        "ClwfApi",
+                        "RootResourceId"
+                    ]
+                },
+                "PathPart": "file-feedback",
+                "RestApiId": {
+                    "Ref": "ClwfApi"
+                }
+            }
+        },
+        "GetFileMethod": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "ApiKeyRequired": false,
+                "AuthorizationType": "NONE",
+                "HttpMethod": "GET",
+                "ResourceId": {
+                    "Ref": "FileResource"
+                },
+                "Integration": {
+                    "IntegrationHttpMethod": "POST",
+                    "Type": "AWS_PROXY",
+                    "Uri": {
+                        "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetFileFromAirtable.Arn}/invocations"
+                    }
+                }
+            }
+        },
+        "PostFileFeedbackMethod": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "ApiKeyRequired": false,
+                "AuthorizationType": "NONE",
+                "HttpMethod": "GET",
+                "ResourceId": {
+                    "Ref": "FileFeedbackResource"
+                },
+                "Integration": {
+                    "IntegrationHttpMethod": "POST",
+                    "Type": "AWS_PROXY",
+                    "Uri": {
+                        "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostFileFeedbackToAirtable.Arn}/invocations"
+                    }
+                }
+            }
+        },
+        "OptionsFileMethod": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "HttpMethod": "OPTIONS",
+                "ResourceId": { "Ref": "FileResource" },
+                "RestApiId": { "Ref": "ClwfApi" },
+                "AuthorizationType": "NONE",
+                "Integration": {
+                    "Type": "MOCK",
+                    "RequestTemplates": {
+                        "application/json": "{\"statusCode\": 200}"
+                    },
+                    "IntegrationResponses": [{
+                        "StatusCode": "200",
+                        "ResponseParameters": {
+                          "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                          "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                          "method.response.header.Access-Control-Allow-Origin": "'*'"
+                        },
+                        "ResponseTemplates": {
+                          "application/json": ""
+                        }
+                     }]
+                },
+                "MethodResponses": [{
+                    "StatusCode": "200",
+                    "ResponseModels": {
+                        "application/json": "Empty"
+                    },
+                    "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Headers": false,
+                        "method.response.header.Access-Control-Allow-Methods": false,
+                        "method.response.header.Access-Control-Allow-Origin": false
+                    }
+                }]
+            }
+        },
+        "OptionsFileFeedbackMethod": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "HttpMethod": "OPTIONS",
+                "ResourceId": { "Ref": "FileFeedbackResource" },
+                "RestApiId": { "Ref": "ClwfApi" },
+                "AuthorizationType": "NONE",
+                "Integration": {
+                    "Type": "MOCK",
+                    "RequestTemplates": {
+                        "application/json": "{\"statusCode\": 200}"
+                    },
+                    "IntegrationResponses": [{
+                        "StatusCode": "200",
+                        "ResponseParameters": {
+                          "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                          "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                          "method.response.header.Access-Control-Allow-Origin": "'*'"
+                        },
+                        "ResponseTemplates": {
+                          "application/json": ""
+                        }
+                     }]
+                },
+                "MethodResponses": [{
+                    "StatusCode": "200",
+                    "ResponseModels": {
+                        "application/json": "Empty"
+                    },
+                    "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Headers": false,
+                        "method.response.header.Access-Control-Allow-Methods": false,
+                        "method.response.header.Access-Control-Allow-Origin": false
+                    }
+                }]
+            }
+        },
+        "PyairtableLayer": {
+            "Type": "AWS::Lambda::LayerVersion",
+            "Properties": {
+                "CompatibleRuntimes":[ "python3.8" ],
+                "Description": "python client for airtable API",
+                "LayerName": "pyairtable",
+                "Content": {
+                    "S3Bucket": "<LAMBDA_LAYER_BUCKET>",
+                    "S3Key": "<LAYER_FILE_NAME>"
+                }
+            }
+        }
+        "GetFileFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Description": "Retrieves file name, link, and deadline from airtable",
+                "FunctionName": "GetFileFromAirtable",
+                "Handler": "index.lambda_handler",
+                "Runtime": "python3.8",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaExecutionRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "S3Bucket": "<FUNC_BUCKET_NAME>",
+                    "S3Key": "<GETFILE_FILE_NAME>"
+                }
+            }
+        }
+        "PostFileFeedbackFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Description": "Publishes client feedback on file to airtable",
+                "FunctionName": "PostFileFeedbackToAirtable",
+                "Handler": "index.lambda_handler",
+                "Runtime": "python3.8",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaExecutionRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "S3Bucket": "<FUNC_BUCKET_NAME>",
+                    "S3Key": "<FILEFEEDBACK_FILE_NAME>"
+                }
+            }
+        }
+    },
+
+    "Outputs": {
+        "ApiEndpoint": {
+            "Description": "API Gateway URL",
+            "Value": {
+                "Fn::Sub": "https://${ClwfApi}.execute-api.${AWS::Region}.amazonaws.com/"
+            }
+        }
+    }
+}
