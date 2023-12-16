@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloverleaf Response Form</title>
+    <link rel="stylesheet" href="cloverleaf-web-form_files/main.css">
+</head>
+<body>
+    <div class="content">
+        <section class="logo-section">
+            <div class="container">
+                <div class="portal-btn-wrapper">
+                    <a href="http://ec2-3-144-160-124.us-east-2.compute.amazonaws.com/" class="portal-btn"><img src="cloverleaf-web-form_files/back-arrow.svg" alt=""><span>Portal</span></a>
+                    
+                </div>
+                <a href="https://www.cloverleaf.audio/" class="logo">
+                    <img src="cloverleaf-web-form_files/cloverleaf_logo.png" alt="cloverleaf logo">
+                </a>
+            </div>
+        </section>
+        <div class="divider"></div>
+        <section class="title-section">
+            <div class="container">
+                <div class="title"><h1><span class="file-name" id="file_name"></span></h1></div>
+                <div class="subtitle"><u>Review Deadline: <span id="deadline_head"></span></u></div>
+            </div>
+        </section>
+        <div class="divider"></div>
+        <section class="content-section">
+            <div class="container sxs-flexbox">
+                <div class="step-1">
+                    <p class="number"><span class="numberspan">1</span></p>
+                    <a target="_blank" id="file_link" class="review-link">Review Your File</a>
+                    <p class="link-note">(File will open in new tab)</p>
+                </div>
+
+                <div class="step-2">
+                    <p class="number"><span class="numberspan">2</span></p>
+                    <form class="radio-buttons" id="radio-form">
+                        <h3>Update File Status:</h3>
+                        <label class="button-container" for="needs-revision">
+                            <input type="radio" id="needs-revision" name="response" value="needs-revision">Needs Revision
+                            <span class="custom-radio"></span>
+                        </label><br>
+                        <label class="button-container" for="needs-re-recording">
+                            <input type="radio" id="needs-re-recording" name="response" value="needs-re-recording">Needs Re-Recording
+                            <span class="custom-radio"></span>
+                        </label> <br>
+                        <label class="button-container" for="approved">
+                            <input type="radio" id="approved" name="response" value="approved">Approved
+                            <span class="custom-radio"></span>
+                        </label>                        
+                    </form>
+                </div>
+
+                <div class="step-3">
+                    <p class="number"><span class="numberspan">3</span></p>
+                    <input class="submit-btn" id="submit-btn" type="submit" value="Submit" form="radio-form">
+                </div>
+            </div>
+        </section>
+        <div class="divider"></div>
+    
+        <section class="help-section">
+            <div class="container">
+                <h2>Need help? Read this.</h2>
+                <h3 class="mini-headers">Need Changes?</h3>
+                <p>If you need revisions, please add your notes directly
+ to the file using the comment box below the linked audio player. 
+Timestamped comments help us to understand your requests and make 
+changes quickly. After adding all your notes in FilePass or Vimeo, 
+select the "Needs Revision" box below to let us know that you're ready 
+for us to make changes.</p>
+                <h3 class="mini-headers">Need to Re-Record?</h3>
+                <p>For audio projects, if you decide that we need to 
+re-record something, check the "Needs Re-Recording" box below, and we'll
+ email you a link to book an appointment to re-record. Keep in mind, we 
+don't include re-recording in our pricing, so it typically requires an 
+additional charge.</p>
+                <h3 class="mini-headers">Sounds good!</h3>
+                <p>If you're happy with how everything sounds, check the "Approved" box below.</p>
+                <h3 class="mini-headers">Click Submit</h3>
+                <p>Make sure to click "Submit" to finalize the status update. We'll take action based on your response, and <span class="replacebold"><em>we won't do anything until we hear from you.</em></span>
+                    <br><br>If we don't receive a response from you by <span id="deadline_foot"></span>, we'll automatically mark this "Approved" and move on to the next stage of the project.</p>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        //const env = "dev";
+        const env = "prod";
+
+        //Send the record ID from the URL to serverless back end
+        function sendURLParams() {
+            console.log("log something");
+
+            // get airtable record ID from URL
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            recordID = urlParams.get("id");
+            console.log(recordID);
+            var raw = JSON.stringify({ "id" : recordID });
+            //var recordID = 'recpmx895SvqsV30j';
+            
+            // instantiate a headers object
+            var myHeaders = new Headers();
+            // add content type header to object
+            myHeaders.append("Content-Type", "application/json");
+            // create a JSON object with parameters for API call and store in a variable
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+
+            // make API call with parameters and use promises to get response
+            fetch("https://6mnrxf43z9.execute-api.us-east-2.amazonaws.com/"+env+"/retrieveairtabledata/", requestOptions)
+            .then(response => response.text())
+            .then(result => fillData(JSON.parse(JSON.parse(result))))
+            .catch(error => console.log('error', error));
+        }
+
+        function fillData(result){
+            console.log(result);
+            var fileName = result.file_name;
+            var deadlineArray = result["deadline"].split("-");
+            var link = result["link"];
+            
+            var dlYear = deadlineArray[0];
+            var dlMonth = deadlineArray[1];
+            var dlDay = deadlineArray[2];
+
+            var deadline = dlMonth + "/" + dlDay + "/" + dlYear;
+
+            document.getElementById("file_name").innerText = fileName;
+            document.getElementById("deadline_head").innerText = deadline;
+            document.getElementById("deadline_foot").innerText = deadline;
+            document.getElementById("file_link").href = link;
+        }
+
+        //Send form data to back end on submit
+        
+        (() => {
+            const form = document.getElementById("radio-form");
+            const apiEndpoint = "https://6mnrxf43z9.execute-api.us-east-2.amazonaws.com/"+env+"/sendresponsetoairtable/";
+            const subBtn = document.getElementById("submit-btn");
+
+            form.onsubmit = event => {
+                event.preventDefault();
+                subBtn.style.background = "#f37820"
+                subBtn.value = ("Sending...");
+
+                try {
+                    var selection = document.querySelector('input[name="response"]:checked').value;
+                } catch (TypeError) {
+                    subBtn.value = "Submit";
+                    alert("Must update file status before submitting");
+                    return;
+                }
+                
+                var raw = JSON.stringify({ "id" : recordID , "form_response" : selection });
+
+                var myHeaders = new Headers();
+                
+                myHeaders.append("Content-Type", "application/json");
+               
+                var requestOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: raw,
+                    redirect: 'follow'
+                };
+
+                fetch(apiEndpoint, requestOptions)
+                .then(response => response.text())
+                .then(result => processSubmitResult(JSON.parse(result), subBtn))
+                .catch(error => console.log('error', error));
+            };
+        })();
+
+        function processSubmitResult(result, subBtn){
+            console.log("API Response: "+result);
+            if (result == "Success" ) {
+                subBtn.value = "Submitted!";
+                subBtn.style.background = "rgb(129, 216, 111)";
+            }
+            else {
+                subBtn.value = "Failed";
+            }
+        }
+        
+        window.onload = sendURLParams();
+
+    </script>
+
+</body></html>

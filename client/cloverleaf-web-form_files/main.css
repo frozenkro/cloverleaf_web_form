@@ -1,0 +1,252 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap");
+body {
+  background: #005877;
+  margin: 0;
+  font-family: 'Montserrat';
+}
+
+.content {
+  background: white;
+  margin: 2em auto 2em auto;
+  width: 80%;
+  padding: 2em;
+  border-radius: 2.5em;
+  max-width: 750px;
+}
+
+.container {
+  text-align: center;
+  padding: 1em;
+}
+
+.logo img {
+  display: block;
+  width: 50%;
+  max-width: 300px;
+  margin: 0 auto 2em auto;
+}
+
+.divider {
+  display: block;
+  border-bottom: 1px solid #dbd9d9;
+  height: 1px;
+  margin: 5 0 5 0;
+}
+
+.replacebold {
+  font-weight: bold;
+}
+
+.portal-btn-wrapper {
+  position: relative;
+  left: 0;
+}
+
+.portal-btn {
+  position: absolute;
+  left: -1.5em;
+  font-weight: bold;
+  text-decoration: none;
+  color: white;
+  background: #f37820;
+  border: 1px solid gray;
+  border-radius: 2em;
+  line-height: 1em;
+}
+
+.portal-btn img {
+  position: relative;
+  top: 2px;
+  left: -3px;
+  height: 2em;
+  -webkit-filter: invert(99%) sepia(13%) saturate(253%) hue-rotate(211deg) brightness(118%) contrast(100%);
+          filter: invert(99%) sepia(13%) saturate(253%) hue-rotate(211deg) brightness(118%) contrast(100%);
+}
+
+.portal-btn span {
+  position: relative;
+  bottom: 8px;
+  left: -9px;
+}
+
+.sxs-flexbox {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.sxs-flexbox div {
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+}
+
+.sxs-flexbox .step-1 {
+  border-right: solid;
+  border-width: 2px;
+  border-color: #dbd9d9;
+}
+
+.sxs-flexbox .step-1 .review-link {
+  position: relative;
+  top: 2em;
+  margin: 0;
+  text-decoration: none;
+  font-weight: bold;
+  color: white;
+  background: #f37820;
+  padding: 1em;
+  border: 1px solid gray;
+  border-radius: 2em;
+}
+
+.sxs-flexbox .step-1 .link-note {
+  position: relative;
+  top: 40px;
+  font-size: small;
+  color: gray;
+}
+
+.sxs-flexbox .step-2 h3 {
+  margin: auto;
+  margin-bottom: 1em;
+}
+
+.sxs-flexbox .step-2 .button-container {
+  display: block;
+  position: relative;
+  padding-left: 3em;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sxs-flexbox .step-2 .button-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.sxs-flexbox .step-2 .button-container .custom-radio {
+  position: absolute;
+  top: 0;
+  left: 1.5em;
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+  border-radius: 50%;
+}
+
+.sxs-flexbox .step-2 .button-container .custom-radio:after {
+  content: '';
+  position: absolute;
+  display: none;
+  top: 6px;
+  left: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+}
+
+.sxs-flexbox .step-2 .button-container:hover .custom-radio {
+  background-color: #ccc;
+}
+
+.sxs-flexbox .step-2 .button-container input:checked ~ .custom-radio {
+  background-color: #005877;
+}
+
+.sxs-flexbox .step-2 .button-container input:checked ~ .custom-radio:after {
+  display: block;
+}
+
+.sxs-flexbox .step-3 {
+  border-left: solid;
+  border-width: 2px;
+  border-color: #dbd9d9;
+}
+
+.sxs-flexbox .step-3 .submit-btn {
+  font-family: "Montserrat";
+  font-size: 1em;
+  position: relative;
+  top: 1em;
+  margin: 0;
+  text-decoration: none;
+  font-weight: bold;
+  color: white;
+  background: #f37820;
+  padding: 1em;
+  border: 1px solid gray;
+  border-radius: 2em;
+  cursor: pointer;
+}
+
+.sxs-flexbox .numberspan {
+  font-weight: bold;
+  font-size: 1.5em;
+  color: white;
+  background: #dbd9d9;
+  padding: 0px 10px;
+  border-radius: 100%;
+  border-color: #bbbbbb;
+  border-style: solid;
+  border-width: 1px;
+}
+
+@media only screen and (max-width: 768px) {
+  .sxs-flexbox {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    padding: 0px;
+  }
+  .sxs-flexbox div {
+    margin: 2em 0;
+  }
+  .sxs-flexbox .step-1 {
+    border: none;
+    margin-top: 0;
+  }
+  .sxs-flexbox .step-2 {
+    margin-bottom: 1em;
+  }
+  .sxs-flexbox .step-2 .button-container {
+    position: relative;
+    margin-left: 17%;
+  }
+  .sxs-flexbox .step-2:before {
+    content: '';
+    display: block;
+    border-bottom: 1px solid #dbd9d9;
+    height: 1px;
+  }
+  .sxs-flexbox .step-3 {
+    border: none;
+    margin-top: 0;
+  }
+  .sxs-flexbox .step-3:before {
+    content: '';
+    display: block;
+    border-bottom: 1px solid #dbd9d9;
+    height: 1px;
+  }
+}
+
+input.success {
+  background: green;
+}
+/*# sourceMappingURL=main.css.map */
