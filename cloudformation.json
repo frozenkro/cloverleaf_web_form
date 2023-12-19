@@ -49,7 +49,7 @@
                     "Ref": "FileResource"
                 },
                 "Integration": {
-                    "IntegrationHttpMethod": "POST",
+                    "IntegrationHttpMethod": "GET",
                     "Type": "AWS_PROXY",
                     "Uri": {
                         "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetFileFromAirtable.Arn}/invocations"
