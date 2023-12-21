@@ -69,7 +69,7 @@ if [ $? -eq 0 ]; then
     echo "API Gateway URL: $API_GATEWAY_URL"
 else
     echo "Stack deployment failed."
-    exit
+    exit 1
 fi
 
 
