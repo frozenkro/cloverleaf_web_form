@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e 
 
 if [ -z "$AT_API_KEY" ]; then 
     echo "Error: environment variable AT_API_KEY is not set"
@@ -11,9 +12,11 @@ FUNC_BUCKET_NAME="cloverleaf-lambda-funcs"
 GETFILE_FILE_NAME="getfilefromairtable.py"
 FILEFEEDBACK_FILE_NAME="postfilefeedbacktoairtable.py"
 REGION=$(aws configure get region)
-AMPLIFY_APP_NAME="Clwf"
+API_STACK_NAME="clwf-api"
+FE_STACK_NAME="clwf-fe"
+FE_BUCKET_NAME="clwf"
 
-cp ./cloudformation.json cloudformation-deploy.json
+cp ./cloudformation-api.json cloudformation-api-deploy.json
 
 if aws s3api head-bucket --bucket "$LAYER_BUCKET_NAME" 2>&1 | grep -q "Not Found"; then
     echo "Creating bucket '$LAYER_BUCKET_NAME'."
@@ -40,26 +43,54 @@ echo "Uploading '$FILEFEEDBACK_FILE_NAME' function to '$FUNC_BUCKET_NAME'"
 aws s3 cp ./$FILEFEEDBACK_FILE_NAME s3://$FUNC_BUCKET_NAME/$FILEFEEDBACK_FILE_NAME
 
 echo "Performing string replacements for cloudformation vars"
-sed -i "s/<LAMBDA_LAYER_BUCKET>/$LAYER_BUCKET_NAME/g" "./cloudformation-deploy.json"
-sed -i "s/<LAMBDA_LAYER_FILE>/$LAYER_FILE_NAME/g" "./cloudformation-deploy.json"
-sed -i "s/<FUNC_BUCKET_NAME>/$FUNC_BUCKET_NAME/g" "./cloudformation-deploy.json"
-sed -i "s/<GETFILE_FILE_NAME>/$GETFILE_FILE_NAME/g" "./cloudformation-deploy.json"
-sed -i "s/<FILEFEEDBACK_FILE_NAME>/$FILEFEEDBACK_FILE_NAME/g" "./cloudformation-deploy.json"
-sed -i "s/<AT_API_KEY>/$AT_API_KEY/g" "./cloudformation-deploy.json"
+sed -i "s/<LAMBDA_LAYER_BUCKET>/$LAYER_BUCKET_NAME/g" "./cloudformation-api-deploy.json"
+sed -i "s/<LAMBDA_LAYER_FILE>/$LAYER_FILE_NAME/g" "./cloudformation-api-deploy.json"
+sed -i "s/<FUNC_BUCKET_NAME>/$FUNC_BUCKET_NAME/g" "./cloudformation-api-deploy.json"
+sed -i "s/<GETFILE_FILE_NAME>/$GETFILE_FILE_NAME/g" "./cloudformation-api-deploy.json"
+sed -i "s/<FILEFEEDBACK_FILE_NAME>/$FILEFEEDBACK_FILE_NAME/g" "./cloudformation-api-deploy.json"
+sed -i "s/<AT_API_KEY>/$AT_API_KEY/g" "./cloudformation-api-deploy.json"
 
 echo "Deploying API and lambdas"
-API_URL=$(aws cloudformation deploy --stack-name clwf-api --template-file ./cloudformation-deploy.json --output text)
+aws cloudformation deploy --stack-name $API_STACK_NAME --template-file ./cloudformation-api-deploy.json 
 
-echo "replacing strings in frontend code and packaging"
-sed -i "s/<API_URL>/$API_URL/g" "./client/cloverleaf-web-form.js"
-zip -r "cloverleaf-web-form.zip" ./client/
+if [ $? -eq 0 ]; then
+    echo "Stack deployed successfully. Retrieving outputs..."
 
-#Might need to create a deployment for this part?
-EXISTING_APP_ID=$(aws amplify list-apps --query "apps[?name=='$AMPLIFY_APP_NAME'].appId" --output text)
-# if [ -z "$EXISTING_APP_ID" ]; then
-#     echo "Existing app found, updating"
-#     #update app here
-# else 
-#     echo "No app found, creating"
-#     #deploy app here
-# fi
+    # Define the output key you want to retrieve
+    OUTPUT_KEY="ApiEndpoint"
+
+    # Use AWS CLI to get stack details
+    STACK_OUTPUTS=$(aws cloudformation describe-stacks --stack-name $API_STACK_NAME)
+
+    # Extract the specific output value
+    API_GATEWAY_URL=$(echo $STACK_OUTPUTS | jq -r ".Stacks[0].Outputs[] | select(.OutputKey == \"$OUTPUT_KEY\") | .OutputValue")
+
+    # Echo or use the API Gateway URL in your script
+    echo "API Gateway URL: $API_GATEWAY_URL"
+else
+    echo "Stack deployment failed."
+    exit
+fi
+
+
+
+cp cloudformation-frontend.json cloudformation-frontend-deploy.json
+mkdir client-deploy -p
+cp -r ./client/* ./client-deploy/
+mv ./client-deploy/cloverleaf-web-form.html ./client-deploy/index.html
+
+echo "replacing strings in frontend code and deploy template"
+sed -i "s/<API_URL>/$API_GATEWAY_URL/g" "./client-deploy/cloverleaf-web-form.js"
+sed -i "s/<FE_BUCKET_NAME>/$FE_BUCKET_NAME/g" "./cloudformation-frontend-deploy.json"
+
+echo "Deploying frontend bucket host"
+aws cloudformation deploy --stack-name $FE_STACK_NAME --template-file ./cloudformation-frontend-deploy.json 
+
+echo "Pushing frontend files to s3"
+aws s3 cp ./client-deploy/index.html s3://$FE_BUCKET_NAME/index.html
+aws s3 cp ./client-deploy/cloverleaf-web-form.js s3://$FE_BUCKET_NAME/cloverleaf-web-form.js
+aws s3 cp ./client-deploy/cloverleaf-web-form_files/back-arrow.svg s3://$FE_BUCKET_NAME/cloverleaf-web-form_files/back-arrow.svg
+aws s3 cp ./client-deploy/cloverleaf-web-form_files/cloverleaf_logo.png s3://$FE_BUCKET_NAME/cloverleaf-web-form_files/cloverleaf_logo.png
+aws s3 cp ./client-deploy/cloverleaf-web-form_files/main.css s3://$FE_BUCKET_NAME/cloverleaf-web-form_files/main.css
+
+echo "Deploy complete!"
