@@ -1,3 +1,3 @@
-./cloudformation-api-deploy.json
-./cloudformation-frontend-deploy.json
-./client-deploy/
+cloudformation-api-deploy.json
+cloudformation-frontend-deploy.json
+client-deploy/
