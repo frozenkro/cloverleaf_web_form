@@ -14,13 +14,13 @@ FILEFEEDBACK_FILE_NAME="postfilefeedbacktoairtable.py"
 REGION=$(aws configure get region)
 API_STACK_NAME="clwf-api"
 FE_STACK_NAME="clwf-fe"
-FE_BUCKET_NAME="clwf"
+FE_BUCKET_NAME="cloverleaf-web-form"
 
 cp ./cloudformation-api.json cloudformation-api-deploy.json
 
 if aws s3api head-bucket --bucket "$LAYER_BUCKET_NAME" 2>&1 | grep -q "Not Found"; then
     echo "Creating bucket '$LAYER_BUCKET_NAME'."
-    aws s3api create-bucket --bucket "$LAYER_BUCKET_NAME" --region $REGION
+    aws s3api create-bucket --bucket "$LAYER_BUCKET_NAME" --region $REGION --create-bucket-configuration LocationConstraint=$REGION
 else 
     echo "Bucket '$LAYER_BUCKET_NAME' found."
 fi
@@ -31,7 +31,7 @@ aws s3 cp ./$LAYER_FILE_NAME s3://$LAYER_BUCKET_NAME/$LAYER_FILE_NAME
 
 if aws s3api head-bucket --bucket "$FUNC_BUCKET_NAME" 2>&1 | grep -q "Not Found"; then
     echo "Creating bucket '$FUNC_BUCKET_NAME'."
-    aws s3api create-bucket --bucket "$FUNC_BUCKET_NAME" --region $REGION
+    aws s3api create-bucket --bucket "$FUNC_BUCKET_NAME" --region $REGION --create-bucket-configuration LocationConstraint=$REGION
 else 
     echo "Bucket '$FUNC_BUCKET_NAME' found."
 fi
@@ -44,14 +44,14 @@ aws s3 cp ./$FILEFEEDBACK_FILE_NAME s3://$FUNC_BUCKET_NAME/$FILEFEEDBACK_FILE_NA
 
 echo "Performing string replacements for cloudformation vars"
 sed -i "s/<LAMBDA_LAYER_BUCKET>/$LAYER_BUCKET_NAME/g" "./cloudformation-api-deploy.json"
-sed -i "s/<LAMBDA_LAYER_FILE>/$LAYER_FILE_NAME/g" "./cloudformation-api-deploy.json"
+sed -i "s/<LAYER_FILE_NAME>/$LAYER_FILE_NAME/g" "./cloudformation-api-deploy.json"
 sed -i "s/<FUNC_BUCKET_NAME>/$FUNC_BUCKET_NAME/g" "./cloudformation-api-deploy.json"
 sed -i "s/<GETFILE_FILE_NAME>/$GETFILE_FILE_NAME/g" "./cloudformation-api-deploy.json"
 sed -i "s/<FILEFEEDBACK_FILE_NAME>/$FILEFEEDBACK_FILE_NAME/g" "./cloudformation-api-deploy.json"
 sed -i "s/<AT_API_KEY>/$AT_API_KEY/g" "./cloudformation-api-deploy.json"
 
 echo "Deploying API and lambdas"
-aws cloudformation deploy --stack-name $API_STACK_NAME --template-file ./cloudformation-api-deploy.json 
+aws cloudformation deploy --stack-name $API_STACK_NAME --template-file ./cloudformation-api-deploy.json --capabilities CAPABILITY_IAM
 
 if [ $? -eq 0 ]; then
     echo "Stack deployed successfully. Retrieving outputs..."
@@ -84,7 +84,7 @@ sed -i "s/<API_URL>/$API_GATEWAY_URL/g" "./client-deploy/cloverleaf-web-form.js"
 sed -i "s/<FE_BUCKET_NAME>/$FE_BUCKET_NAME/g" "./cloudformation-frontend-deploy.json"
 
 echo "Deploying frontend bucket host"
-aws cloudformation deploy --stack-name $FE_STACK_NAME --template-file ./cloudformation-frontend-deploy.json 
+aws cloudformation deploy --stack-name $FE_STACK_NAME --template-file ./cloudformation-frontend-deploy.json --capabilities CAPABILITY_IAM
 
 echo "Pushing frontend files to s3"
 aws s3 cp ./client-deploy/index.html s3://$FE_BUCKET_NAME/index.html

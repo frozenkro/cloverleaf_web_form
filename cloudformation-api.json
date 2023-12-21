@@ -52,7 +52,7 @@
                     "IntegrationHttpMethod": "GET",
                     "Type": "AWS_PROXY",
                     "Uri": {
-                        "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetFileFromAirtable.Arn}/invocations"
+                        "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetFileFunction.Arn}/invocations"
                     }
                 }
             }
@@ -70,7 +70,7 @@
                     "IntegrationHttpMethod": "POST",
                     "Type": "AWS_PROXY",
                     "Uri": {
-                        "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostFileFeedbackToAirtable.Arn}/invocations"
+                        "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostFileFeedbackFunction.Arn}/invocations"
                     }
                 }
             }
@@ -160,7 +160,7 @@
                     "S3Key": "<LAYER_FILE_NAME>"
                 }
             }
-        }
+        },
         "GetFileFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -186,7 +186,7 @@
                     }
                 }
             }
-        }
+        },
         "PostFileFeedbackFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -212,7 +212,7 @@
                     }
                 }
             }
-        }
+        },
         "LambdaExecutionRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
