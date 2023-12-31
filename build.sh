@@ -9,8 +9,8 @@ fi
 LAYER_BUCKET_NAME="cloverleaf-lambda-layers"
 LAYER_FILE_NAME="pyairtable-lambda-layer.zip"
 FUNC_BUCKET_NAME="cloverleaf-lambda-funcs"
-GETFILE_FILE_NAME="getfilefromairtable.py"
-FILEFEEDBACK_FILE_NAME="postfilefeedbacktoairtable.py"
+GETFILE_FILE_NAME="getfilefromairtable"
+FILEFEEDBACK_FILE_NAME="postfilefeedbacktoairtable"
 REGION=$(aws configure get region)
 API_STACK_NAME="clwf-api"
 FE_STACK_NAME="clwf-fe"
@@ -37,10 +37,12 @@ else
 fi
 
 echo "Uploading '$GETFILE_FILE_NAME' function to '$FUNC_BUCKET_NAME'"
-aws s3 cp ./$GETFILE_FILE_NAME s3://$FUNC_BUCKET_NAME/$GETFILE_FILE_NAME
+zip $GETFILE_FILE_NAME.zip $GETFILE_FILE_NAME.py
+aws s3 cp ./$GETFILE_FILE_NAME.zip s3://$FUNC_BUCKET_NAME/$GETFILE_FILE_NAME.zip
 
 echo "Uploading '$FILEFEEDBACK_FILE_NAME' function to '$FUNC_BUCKET_NAME'"
-aws s3 cp ./$FILEFEEDBACK_FILE_NAME s3://$FUNC_BUCKET_NAME/$FILEFEEDBACK_FILE_NAME
+zip $FILEFEEDBACK_FILE_NAME.zip $FILEFEEDBACK_FILE_NAME.py
+aws s3 cp ./$FILEFEEDBACK_FILE_NAME.zip s3://$FUNC_BUCKET_NAME/$FILEFEEDBACK_FILE_NAME.zip
 
 echo "Performing string replacements for cloudformation vars"
 sed -i "s/<LAMBDA_LAYER_BUCKET>/$LAYER_BUCKET_NAME/g" "./cloudformation-api-deploy.json"
@@ -80,7 +82,7 @@ cp -r ./client/* ./client-deploy/
 mv ./client-deploy/cloverleaf-web-form.html ./client-deploy/index.html
 
 echo "replacing strings in frontend code and deploy template"
-sed -i "s/<API_URL>/$API_GATEWAY_URL/g" "./client-deploy/cloverleaf-web-form.js"
+sed -i "s,<API_URL>,$API_GATEWAY_URL,g" "./client-deploy/cloverleaf-web-form.js"
 sed -i "s/<FE_BUCKET_NAME>/$FE_BUCKET_NAME/g" "./cloudformation-frontend-deploy.json"
 
 echo "Deploying frontend bucket host"

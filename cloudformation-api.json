@@ -45,8 +45,11 @@
                 "ApiKeyRequired": false,
                 "AuthorizationType": "NONE",
                 "HttpMethod": "GET",
+                "RestApiId": {
+                    "Ref": "ClwfApi"
+                },
                 "ResourceId": {
-                    "Ref": "FileResource"
+                    "Ref": "FileResource" 
                 },
                 "Integration": {
                     "IntegrationHttpMethod": "GET",
@@ -63,8 +66,11 @@
                 "ApiKeyRequired": false,
                 "AuthorizationType": "NONE",
                 "HttpMethod": "GET",
+                "RestApiId": {
+                    "Ref": "ClwfApi"
+                },
                 "ResourceId": {
-                    "Ref": "FileFeedbackResource"
+                    "Ref": "FileFeedbackResource" 
                 },
                 "Integration": {
                     "IntegrationHttpMethod": "POST",
@@ -176,7 +182,7 @@
                 },
                 "Code": {
                     "S3Bucket": "<FUNC_BUCKET_NAME>",
-                    "S3Key": "<GETFILE_FILE_NAME>"
+                    "S3Key": "<GETFILE_FILE_NAME>.zip"
                 },
                 "Environment": {
                     "Variables": {
@@ -202,7 +208,7 @@
                 },
                 "Code": {
                     "S3Bucket": "<FUNC_BUCKET_NAME>",
-                    "S3Key": "<FILEFEEDBACK_FILE_NAME>"
+                    "S3Key": "<FILEFEEDBACK_FILE_NAME>.zip"
                 },
                 "Environment": {
                     "Variables": {

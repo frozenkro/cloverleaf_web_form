@@ -4,7 +4,13 @@
     "ClwfFrontendBucket": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
-        "BucketName": "<FE_BUCKET_NAME>"
+        "BucketName": "<FE_BUCKET_NAME>",
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": false,
+          "IgnorePublicAcls": false,
+          "BlockPublicPolicy": false,
+          "RestrictPublicBuckets": false
+        }
       }
     },
     "BucketPolicy": {
