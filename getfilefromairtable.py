@@ -4,8 +4,9 @@ import os
 
 def lambda_handler(event, context):
     try:
-        print(event['id'])
-        importData = queryAirtable(event['id'])
+        recordId = event['queryStringParameters']['id']
+        print(recordId)
+        importData = queryAirtable(recordId)
         
         # Format data to be sent to front end
         exportData = {

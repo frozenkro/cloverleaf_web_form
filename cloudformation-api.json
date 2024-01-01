@@ -6,7 +6,10 @@
             "Type": "AWS::ApiGateway::RestApi",
             "Properties": {
                 "Name": "ClwfApi",
-                "Description": "Exposes methods to interact with cloverleaf airtable"
+                "Description": "Exposes methods to interact with cloverleaf airtable",
+                "EndpointConfiguration": {
+                    "Types": ["REGIONAL"]
+                }
             }
         },
         "FileResource": {
@@ -53,10 +56,35 @@
                 },
                 "Integration": {
                     "IntegrationHttpMethod": "GET",
-                    "Type": "AWS_PROXY",
+                    "Type": "AWS",
                     "Uri": {
                         "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetFileFunction.Arn}/invocations"
+                    },
+                    "IntegrationResponses": [{
+                        "StatusCode": "200",
+                        "ResponseParameters": {
+                          "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                          "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                          "method.response.header.Access-Control-Allow-Origin": "'*'"
+                        },
+                        "ResponseTemplates": {
+                          "application/json": ""
+                        }
+                     }]
+                },
+                "MethodResponses": [{
+                    "StatusCode": "200",
+                    "ResponseModels": {
+                        "application/json": "Empty"
+                    },
+                    "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Headers": true,
+                        "method.response.header.Access-Control-Allow-Methods": true,
+                        "method.response.header.Access-Control-Allow-Origin": true
                     }
+                }],
+                "RequestParameters": {
+                    "method.request.querystring.id": true
                 }
             }
         },
@@ -74,11 +102,34 @@
                 },
                 "Integration": {
                     "IntegrationHttpMethod": "POST",
-                    "Type": "AWS_PROXY",
+                    "Type": "AWS",
                     "Uri": {
                         "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostFileFeedbackFunction.Arn}/invocations"
+                    },
+                    "IntegrationResponses": [{
+                        "StatusCode": "200",
+                        "ResponseParameters": {
+                            "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                            "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                            "method.response.header.Access-Control-Allow-Origin": "'*'"
+                        },
+                        "ResponseTemplates": {
+                          "application/json": ""
+                        }
+                    }]
+
+                },
+                "MethodResponses": [{
+                    "StatusCode": "200",
+                    "ResponseModels": {
+                        "application/json": "Empty"
+                    },
+                    "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Headers": true,
+                        "method.response.header.Access-Control-Allow-Methods": true,
+                        "method.response.header.Access-Control-Allow-Origin": true
                     }
-                }
+                }]
             }
         },
         "OptionsFileMethod": {
@@ -111,9 +162,9 @@
                         "application/json": "Empty"
                     },
                     "ResponseParameters": {
-                        "method.response.header.Access-Control-Allow-Headers": false,
-                        "method.response.header.Access-Control-Allow-Methods": false,
-                        "method.response.header.Access-Control-Allow-Origin": false
+                        "method.response.header.Access-Control-Allow-Headers": true,
+                        "method.response.header.Access-Control-Allow-Methods": true,
+                        "method.response.header.Access-Control-Allow-Origin": true
                     }
                 }]
             }
@@ -148,12 +199,22 @@
                         "application/json": "Empty"
                     },
                     "ResponseParameters": {
-                        "method.response.header.Access-Control-Allow-Headers": false,
-                        "method.response.header.Access-Control-Allow-Methods": false,
-                        "method.response.header.Access-Control-Allow-Origin": false
+                        "method.response.header.Access-Control-Allow-Headers": true,
+                        "method.response.header.Access-Control-Allow-Methods": true,
+                        "method.response.header.Access-Control-Allow-Origin": true
                     }
                 }]
             }
+        },
+        "ApiGatewayDeployment": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+                "RestApiId": {
+                  "Ref": "ClwfApi" 
+            },
+            "StageName": "prod" 
+          },
+          "DependsOn": ["GetFileMethod", "PostFileFeedbackMethod", "OptionsFileMethod", "OptionsFileFeedbackMethod"] 
         },
         "PyairtableLayer": {
             "Type": "AWS::Lambda::LayerVersion",
@@ -219,6 +280,33 @@
                 }
             }
         },
+        "GetFileInvokePermission": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "Action": "lambda:InvokeFunction",
+                "FunctionName": {
+                    "Ref": "GetFileFunction" 
+                },
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                    "Fn::Sub": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ClwfApi}/*/*/*"
+                }
+            }
+        },
+        "PostFileFeedbackInvokePermission": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "Action": "lambda:InvokeFunction",
+                "FunctionName": {
+                    "Ref": "PostFileFeedbackFunction" 
+                },
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                    "Fn::Sub": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ClwfApi}/*/*/*"
+                }
+            }
+        },
+
         "LambdaExecutionRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {

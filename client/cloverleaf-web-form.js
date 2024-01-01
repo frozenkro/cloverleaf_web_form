@@ -1,5 +1,5 @@
 
-const API_URL = "<API_URL>"
+const API_URL = "<API_URL>" + "prod/"
 let recordID = ""
 
 //Send the record ID from the URL to serverless back end
@@ -8,7 +8,9 @@ function sendURLParams() {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     recordID = urlParams.get("id");
-    let raw = JSON.stringify({ "id" : recordID });
+    
+    let url = new URL(API_URL+"file/");
+    url.searchParams.append('id', recordID);
     
     // instantiate a headers object
     let myHeaders = new Headers();
@@ -18,12 +20,11 @@ function sendURLParams() {
     let requestOptions = {
         method: 'GET',
         headers: myHeaders,
-        body: raw,
         redirect: 'follow'
     };
 
     // make API call with parameters and use promises to get response
-    fetch(API_URL+"/file/", requestOptions)
+    fetch(url.href, requestOptions)
     .then(response => response.text())
     .then(result => fillData(JSON.parse(JSON.parse(result))))
     .catch(error => console.log('error', error));
