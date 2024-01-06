@@ -57,11 +57,14 @@ function fillData(result){
 
     form.onsubmit = event => {
         event.preventDefault();
+
+        let selection = undefined;
+
         subBtn.style.background = "#f37820"
         subBtn.value = ("Sending...");
 
         try {
-            let selection = document.querySelector('input[name="response"]:checked').value;
+            selection = document.querySelector('input[name="response"]:checked').value;
         } catch (TypeError) {
             subBtn.value = "Submit";
             alert("Must update file status before submitting");

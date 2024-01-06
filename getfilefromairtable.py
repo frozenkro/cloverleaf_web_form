@@ -4,7 +4,7 @@ import os
 
 def lambda_handler(event, context):
     try:
-        recordId = event['queryStringParameters']['id']
+        recordId = event['id']
         print(recordId)
         importData = queryAirtable(recordId)
         

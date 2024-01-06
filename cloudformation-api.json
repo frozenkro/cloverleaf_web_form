@@ -55,16 +55,19 @@
                     "Ref": "FileResource" 
                 },
                 "Integration": {
-                    "IntegrationHttpMethod": "GET",
+                    "IntegrationHttpMethod": "POST",
                     "Type": "AWS",
                     "Uri": {
                         "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetFileFunction.Arn}/invocations"
+                    },
+                    "RequestTemplates": {
+                        "application/json": "{ \"id\": \"$input.params('id')\" }"
                     },
                     "IntegrationResponses": [{
                         "StatusCode": "200",
                         "ResponseParameters": {
                           "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-                          "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                          "method.response.header.Access-Control-Allow-Methods": "'POST,GET,OPTIONS'",
                           "method.response.header.Access-Control-Allow-Origin": "'*'"
                         },
                         "ResponseTemplates": {
@@ -93,7 +96,7 @@
             "Properties": {
                 "ApiKeyRequired": false,
                 "AuthorizationType": "NONE",
-                "HttpMethod": "GET",
+                "HttpMethod": "POST",
                 "RestApiId": {
                     "Ref": "ClwfApi"
                 },
@@ -105,6 +108,9 @@
                     "Type": "AWS",
                     "Uri": {
                         "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostFileFeedbackFunction.Arn}/invocations"
+                    },
+                    "RequestTemplates": {
+                        "application/json": "$input.body"
                     },
                     "IntegrationResponses": [{
                         "StatusCode": "200",
@@ -148,7 +154,7 @@
                         "StatusCode": "200",
                         "ResponseParameters": {
                           "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-                          "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                          "method.response.header.Access-Control-Allow-Methods": "'POST,GET,OPTIONS'",
                           "method.response.header.Access-Control-Allow-Origin": "'*'"
                         },
                         "ResponseTemplates": {
@@ -233,7 +239,7 @@
             "Properties": {
                 "Description": "Retrieves file name, link, and deadline from airtable",
                 "FunctionName": "GetFileFromAirtable",
-                "Handler": "index.lambda_handler",
+                "Handler": "getfilefromairtable.lambda_handler",
                 "Runtime": "python3.8",
                 "Role": {
                     "Fn::GetAtt": [
@@ -241,6 +247,7 @@
                         "Arn"
                     ]
                 },
+                "Layers": [ "Ref": "PyairtableLayer" ],
                 "Code": {
                     "S3Bucket": "<FUNC_BUCKET_NAME>",
                     "S3Key": "<GETFILE_FILE_NAME>.zip"
@@ -259,7 +266,7 @@
             "Properties": {
                 "Description": "Publishes client feedback on file to airtable",
                 "FunctionName": "PostFileFeedbackToAirtable",
-                "Handler": "index.lambda_handler",
+                "Handler": "postfilefeedbacktoairtable.lambda_handler",
                 "Runtime": "python3.8",
                 "Role": {
                     "Fn::GetAtt": [
@@ -267,6 +274,7 @@
                         "Arn"
                     ]
                 },
+                "Layers": [ "Ref": "PyairtableLayer" ],
                 "Code": {
                     "S3Bucket": "<FUNC_BUCKET_NAME>",
                     "S3Key": "<FILEFEEDBACK_FILE_NAME>.zip"
